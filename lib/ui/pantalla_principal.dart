@@ -42,6 +42,12 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     return const Color(0xFFAC4052);
   }
 
+  Color colorPrioridad(String prioridad) {
+    if (prioridad == 'Alta') return const Color(0xFFAC4052);
+    if (prioridad == 'Baja') return const Color(0xFF147D64);
+    return const Color(0xFFB56B13);
+  }
+
   Widget resumen(String etiqueta, String valor, IconData icono) {
     return Expanded(
       child: Card(
@@ -189,6 +195,10 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                                               const SizedBox(height: 6),
                                               Text(item.estado, style: TextStyle(
                                                 color: colorEstado(item.estado), fontWeight: FontWeight.bold,
+                                              )),
+                                              const SizedBox(height: 2),
+                                              Text('Prioridad: ${item.prioridad}', style: TextStyle(
+                                                color: colorPrioridad(item.prioridad), fontWeight: FontWeight.w500,
                                               )),
                                             ],
                                           ),
