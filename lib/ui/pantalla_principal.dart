@@ -13,14 +13,32 @@ class PantallaPrincipal extends StatefulWidget {
 
 class _PantallaPrincipalState extends State<PantallaPrincipal> {
   final GestorIncidencias g = GestorIncidencias();
+  final TextEditingController controlBusqueda = TextEditingController();
   bool cargando = true;
   String? error;
   String busqueda = '';
+  String filtroEstado = 'Todos';
+  String filtroPrioridad = 'Todas';
 
   @override
   void initState() {
     super.initState();
     cargar();
+  }
+
+  @override
+  void dispose() {
+    controlBusqueda.dispose();
+    super.dispose();
+  }
+
+  void restablecerConsulta() {
+    controlBusqueda.clear();
+    setState(() {
+      busqueda = '';
+      filtroEstado = 'Todos';
+      filtroPrioridad = 'Todas';
+    });
   }
 
   Future<void> cargar() async {
@@ -90,7 +108,8 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
 
   @override
   Widget build(BuildContext context) {
-    final items = g.buscar(busqueda);
+    final items =
+        g.buscar(busqueda, estado: filtroEstado, prioridad: filtroPrioridad);
     return Scaffold(
       appBar: AppBar(
         title: const Text('NexaSoft | Incidencias'),
@@ -157,6 +176,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 5),
                           child: TextField(
+                            controller: controlBusqueda,
                             decoration: const InputDecoration(
                               labelText: 'Buscar incidencias',
                               hintText: 'Ejemplo: WiFi, correo, pantalla',
@@ -164,6 +184,53 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                               border: OutlineInputBorder(),
                             ),
                             onChanged: (texto) => setState(() => busqueda = texto),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 5),
+                          child: Wrap(
+                            spacing: 12,
+                            runSpacing: 8,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 230,
+                                child: DropdownButtonFormField<String>(
+                                  value: filtroEstado,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Estado',
+                                    border: OutlineInputBorder(),
+                                    isDense: true,
+                                  ),
+                                  items: ['Todos', 'Pendiente', 'En proceso', 'Resuelta']
+                                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                                      .toList(),
+                                  onChanged: (v) =>
+                                      setState(() => filtroEstado = v ?? 'Todos'),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 230,
+                                child: DropdownButtonFormField<String>(
+                                  value: filtroPrioridad,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Prioridad',
+                                    border: OutlineInputBorder(),
+                                    isDense: true,
+                                  ),
+                                  items: ['Todas', 'Alta', 'Media', 'Baja']
+                                      .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+                                      .toList(),
+                                  onChanged: (v) =>
+                                      setState(() => filtroPrioridad = v ?? 'Todas'),
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: 'Restablecer búsqueda y filtros',
+                                onPressed: restablecerConsulta,
+                                icon: const Icon(Icons.filter_alt_off_outlined),
+                              ),
+                            ],
                           ),
                         ),
                         Padding(
@@ -175,7 +242,20 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                         ),
                         Expanded(
                           child: items.isEmpty
-                              ? const Center(child: Text('No se encontraron incidencias'))
+                              ? Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text('No hay resultados'),
+                                      const SizedBox(height: 12),
+                                      FilledButton.icon(
+                                        onPressed: restablecerConsulta,
+                                        icon: const Icon(Icons.filter_alt_off_outlined),
+                                        label: const Text('Restablecer búsqueda y filtros'),
+                                      ),
+                                    ],
+                                  ),
+                                )
                               : ListView.builder(
                                   padding: const EdgeInsets.only(left: 12, right: 12, bottom: 100),
                                   itemCount: items.length,
